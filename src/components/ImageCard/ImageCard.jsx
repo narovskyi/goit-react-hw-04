@@ -1,6 +1,6 @@
-import css from "./ImageGalleryItem.module.css"
+import css from "./ImageCard.module.css"
 
-export default function ImageGalleryItem({ largeImage, smallImage, altText, onClick }) {
+export default function ImageCard({ largeImage, smallImage, altText, onClick }) {
     return (
             <img
                 className={css.image}

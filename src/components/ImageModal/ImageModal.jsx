@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import css from "./Modal.module.css"
+import css from "./ImageModal.module.css"
 
 const modalRoot = document.querySelector('#modal-root');
 
-export default function Modal({ onClose, children }) {
+export default function ImageModal({ onClose, children }) {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.code === 'Escape') {

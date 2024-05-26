@@ -4,3 +4,12 @@
     grid-gap: 16px;
     padding-bottom: 24px;
 }
+
+.heading {
+    text-align: center;
+    color: #757575;
+}
+
+.image {
+    color: #ffffff;
+}
