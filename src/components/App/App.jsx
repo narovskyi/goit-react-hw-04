@@ -4,13 +4,13 @@ import ImageGallery from "../ImageGallery/ImageGallery";
 import ImageModal from "../ImageModal/ImageModal";
 import LoadMoreBtn from "../LoadMoreBtn/LoadMoreBtn";
 import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import { ToastContainer } from "react-toastify";
 import css from "./App.module.css";
-import api from '../../services/api'
+import api from '../../services/api';
 
 const status = {
   IDLE: 'idle',
-  PENDING: 'pending',
   NOTHING_FOUND: 'nothing found',
   LAST_PAGE: 'last page',
   RESOLVED: 'resolved',
@@ -24,13 +24,15 @@ export default function App() {
   const [statusState, setStatusState] = useState(status.IDLE);
   const [showModal, setShowModal] = useState(false);
   const [imageInModal, setImageInModal] = useState({ imageUrl: '', altImageText: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!searchPhrase) {
       return;
     }
     if (page === 1) {
-      setStatusState(status.PENDING);
+      setGalleryItems([]);
+      setIsLoading(true);
       api.fetchPhoto(page, searchPhrase)
         .then(photos => {
           if (photos.length === 0) {
@@ -47,8 +49,12 @@ export default function App() {
           console.log(error);
           setGalleryItems([]);
           setStatusState(status.ERROR);
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
     } else {
+      setIsLoading(true);
       api.fetchPhoto(page, searchPhrase)
         .then(photos => {
           if (photos.length < 12 && photos.length >= 0) {
@@ -62,7 +68,10 @@ export default function App() {
       .catch(() => {
           setGalleryItems([]);
           setStatusState(status.ERROR);
-      });
+      })
+      .finally(() => {
+          setIsLoading(false);
+        });
     }
   }, [page, searchPhrase]);
 
@@ -92,17 +101,8 @@ export default function App() {
     return (
       <div className={css.wrapper}>
         <Searchbar onSubmit={handleSearchSubmit} />
-        <h1 className={css.heading}>You have not searched yet...</h1>
-        <ToastContainer autoClose={3000}/>
-      </div>
-    );
-  }
-
-  if (statusState === status.PENDING) {
-    return (
-      <div className={css.wrapper}>
-        <Searchbar onSubmit={handleSearchSubmit} />
-        <Loader />
+        {isLoading && <Loader />}
+        {!isLoading && <h1 className={css.heading}>You have not searched yet...</h1>}
         <ToastContainer autoClose={3000}/>
       </div>
     );
@@ -112,11 +112,15 @@ export default function App() {
     return (
       <div className={css.wrapper}>
         <Searchbar onSubmit={handleSearchSubmit} />
-        <ImageGallery galleryItems={galleryItems} handleImageClick={handleImageClick}/>
-        {showModal && <ImageModal onClose={closeModal}>
-            <img className={css.image} src={imageInModal.imageUrl} alt={imageInModal.altImageText} />
-        </ImageModal>}
-        <LoadMoreBtn onClick={handleLoadMoreBtnClick} />
+        <ImageGallery galleryItems={galleryItems} handleImageClick={handleImageClick} />
+        {isLoading && <Loader />}
+        {!isLoading && <LoadMoreBtn onClick={handleLoadMoreBtnClick} />}
+        <ImageModal
+          isOpen={showModal}
+          onRequestClose={closeModal}
+        >
+          <img className={css.image} src={imageInModal.imageUrl} alt={imageInModal.altImageText} width='100%' height='100%' />
+        </ImageModal>
         <ToastContainer autoClose={3000}/>
       </div>
       );
@@ -127,10 +131,14 @@ export default function App() {
       <div className={css.wrapper}>
         <Searchbar onSubmit={handleSearchSubmit} />
         <ImageGallery galleryItems={galleryItems} handleImageClick={handleImageClick} />
-        <h1 className={css.heading}>That is all we found for your request.</h1>
-        {showModal && <ImageModal onClose={closeModal}>
-            <img className={css.image} src={imageInModal.imageUrl} alt={imageInModal.altImageText} />
-        </ImageModal>}
+        {isLoading && <Loader />}
+        {!isLoading && <h1 className={css.heading}>That is all we found for your request.</h1>}
+        <ImageModal
+          isOpen={showModal}
+          onRequestClose={closeModal}
+        >
+          <img className={css.image} src={imageInModal.imageUrl} alt={imageInModal.altImageText} />
+        </ImageModal>
         <ToastContainer autoClose={3000}/>
       </div>
     );
@@ -140,7 +148,8 @@ export default function App() {
     return (
       <div className={css.wrapper}>
         <Searchbar onSubmit={handleSearchSubmit} />
-        <h1 className={css.heading}>Sorry, we could not find any matches...</h1>
+        {isLoading && <Loader />}
+        {!isLoading && <h1 className={css.heading}>Sorry, we could not find any matches...</h1>}
         <ToastContainer autoClose={3000}/>
       </div>
     );
@@ -150,7 +159,8 @@ export default function App() {
     return (
       <div className={css.wrapper}>
         <Searchbar onSubmit={handleSearchSubmit} />
-        <h1 className={css.heading}>Sorry, something went wrong...</h1>
+        {isLoading && <Loader />}
+        {!isLoading && <ErrorMessage />}
         <ToastContainer autoClose={3000}/>
       </div>      
     );
